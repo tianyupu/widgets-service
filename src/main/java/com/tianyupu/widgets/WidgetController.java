@@ -3,8 +3,8 @@ package com.tianyupu.widgets;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Comparator;
@@ -39,22 +39,21 @@ public class WidgetController {
     private final AtomicLong counter = new AtomicLong();
     private final ConcurrentHashMap<Long, Widget> widgets = new ConcurrentHashMap<>();
 
-    /*
-    TODO:
-        - @RequestBody POJO
-     */
     @RequestMapping(path="/widget", method=POST)
-    public ResponseEntity<Widget> createWidget(
-            @RequestParam(value="x") int x,
-            @RequestParam(value="y") int y,
-            @RequestParam(value="width") int width,
-            @RequestParam(value="height") int height,
-            @RequestParam(value="zIndex", required=false) Integer zIndex
-    ) {
+    public ResponseEntity<Widget> createWidget(@RequestBody WidgetRequest widgetRequest) {
+        if (widgetRequest.getX() == null
+                || widgetRequest.getY() == null
+                || widgetRequest.getWidth() == null
+                || widgetRequest.getHeight() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         long newId = counter.incrementAndGet();
         Widget newWidget = widgets.computeIfAbsent(newId, id -> new Widget(
-                x, y, width, height,
-                Optional.ofNullable(zIndex).orElse(getMaxZIndex() + 1),
+                widgetRequest.getX(),
+                widgetRequest.getY(),
+                widgetRequest.getWidth(),
+                widgetRequest.getHeight(),
+                Optional.ofNullable(widgetRequest.getZIndex()).orElse(getMaxZIndex() + 1),
                 id
         ));
         updateZIndexes(newWidget, 1);
@@ -73,24 +72,27 @@ public class WidgetController {
     @RequestMapping(path="/widget/{id}", method=PUT)
     public ResponseEntity<Widget> updateWidgetById(
             @PathVariable(value="id") long id,
-            @RequestParam(value="x") int x,
-            @RequestParam(value="y") int y,
-            @RequestParam(value="width") int width,
-            @RequestParam(value="height") int height,
-            @RequestParam(value="zIndex", required=false) Integer zIndex
+            @RequestBody WidgetRequest widgetRequest
     ) {
+        if (widgetRequest.getX() == null
+                || widgetRequest.getY() == null
+                || widgetRequest.getWidth() == null
+                || widgetRequest.getHeight() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
         Widget widget = widgets.get(id);
         if (widget == null) {
             return ResponseEntity.notFound().build();
         }
 
-        widget.setX(x);
-        widget.setY(y);
-        widget.setWidth(width);
-        widget.setHeight(height);
+        widget.setX(widgetRequest.getX());
+        widget.setY(widgetRequest.getY());
+        widget.setWidth(widgetRequest.getWidth());
+        widget.setHeight(widgetRequest.getHeight());
 
         int previousZIndex = widget.getZIndex();
-        Integer newZIndex = Optional.ofNullable(zIndex).orElse(getMaxZIndex() + 1);
+        Integer newZIndex = Optional.ofNullable(widgetRequest.getZIndex()).orElse(getMaxZIndex() + 1);
         widget.setZIndex(newZIndex);
         updateZIndexes(widget, newZIndex - previousZIndex);
 
