@@ -110,6 +110,19 @@ public class Widget {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Widget{" +
+                "x=" + x +
+                ", y=" + y +
+                ", width=" + width +
+                ", height=" + height +
+                ", zIndex=" + zIndex +
+                ", lastModified=" + lastModified +
+                ", id=" + id +
+                '}';
+    }
+
     private void updateLastModifiedTime() {
         lastModified.compareAndSet(getLastModified(), Date.from(Instant.now()));
     }
