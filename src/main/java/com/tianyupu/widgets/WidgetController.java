@@ -55,7 +55,8 @@ public class WidgetController {
         if (widgetRequest.getX() == null
                 || widgetRequest.getY() == null
                 || widgetRequest.getWidth() == null
-                || widgetRequest.getHeight() == null) {
+                || widgetRequest.getHeight() == null
+                || widgetRequest.getZIndex() == null) {
             return ResponseEntity.badRequest().build();
         }
 

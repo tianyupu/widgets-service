@@ -44,11 +44,7 @@ public class DefaultWidgetService implements WidgetService {
         widget.setY(widgetRequest.getY());
         widget.setWidth(widgetRequest.getWidth());
         widget.setHeight(widgetRequest.getHeight());
-
-        int previousZIndex = widget.getZIndex();
-        Integer newZIndex = Optional.ofNullable(widgetRequest.getZIndex()).orElse(getMaxZIndex() + 1);
-        widget.setZIndex(newZIndex);
-        updateZIndexes(widget, newZIndex - previousZIndex);
+        widget.setZIndex(widgetRequest.getZIndex());
 
         return widget;
     }
@@ -71,12 +67,12 @@ public class DefaultWidgetService implements WidgetService {
         return widgets.reduceValuesToInt(PARALLELISM_THRESHOLD, Widget::getZIndex, Integer.MIN_VALUE, Math::max);
     }
 
-    private void updateZIndexes(Widget updatedWidget, int delta) {
+    private void updateZIndexes(Widget newWidget, int delta) {
         widgets.forEach(
                 PARALLELISM_THRESHOLD,
                 (existingId, existingWidget) -> {
-                    if (existingWidget.getZIndex() > updatedWidget.getZIndex() - delta
-                            && !existingWidget.equals(updatedWidget)) {
+                    if (existingWidget.getZIndex() >= newWidget.getZIndex()
+                            && !existingWidget.equals(newWidget)) {
                         existingWidget.setZIndex(existingWidget.getZIndex() + delta);
                     }
                 }
